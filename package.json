@@ -13,6 +13,8 @@
     "@emotion/styled": "^11.13.0",
     "@mui/material": "^5.16.6",
     "@next/swc-win32-x64-msvc": "^14.2.5",
+    "ai-customer-support": "file:",
+    "firebase": "^10.12.5",
     "next": "14.2.5",
     "openai": "^4.55.1",
     "react": "^18",
