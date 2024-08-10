@@ -1,9 +1,10 @@
-'use client'; // Ensure this file is treated as a client-side component
- // Home page
+'use client';
+
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation'; // Updated import for Next.js 13 and newer
-import { Box, Typography } from '@mui/material';
+import { useRouter } from 'next/navigation';
+import { Box, Typography, Button } from '@mui/material';
 import { Typewriter } from 'react-simple-typewriter';
+import { SignIn, SignedOut, SignedIn, UserButton } from '@clerk/nextjs';
 
 export default function Home() {
   const router = useRouter();
@@ -29,14 +30,16 @@ export default function Home() {
         backgroundImage: `url('homepage.jpg')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        height: '100vh',
+        minHeight: '100vh',
         width: '100%',
-        overflow: 'hidden',
+        overflowY: 'auto', // Allow vertical scrolling when necessary
         position: 'relative',
+        textAlign: 'center',
+        display: 'flex',
+        flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        textAlign: 'center',
-        overflow: 'hidden', // Ensure the hover effect doesn't go outside the container
+        padding: '20px',
       }}
     >
       <Box
@@ -47,57 +50,42 @@ export default function Home() {
           padding: '16px',
           width: '100%',
           boxShadow: 'none',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          zIndex: 1000,
         }}
       >
         <Box
           sx={{
-            fontSize: '24px',
+            fontSize: { xs: '18px', sm: '24px' }, // Adjust font size based on screen size
             fontWeight: 'bold',
             color: 'white',
             borderBottom: '2px solid transparent',
+            paddingLeft: '16px',
           }}
-          onClick={() => router.push('/')} // Redirect to homepage on click
+          onClick={() => router.push('/')} 
         >
-          AI
+          AI Assistant
         </Box>
-        <Box
-          sx={{
-            fontSize: '18px',
-            fontWeight: 'medium',
-            color: 'white',
-            cursor: 'pointer',
-            borderBottom: '2px solid transparent',
-            '&:hover': {
-              borderBottom: '2px solid white',
-            },
-          }}
-          onClick={() => router.push('/signin')} // Navigate to the sign-in page
-        >
-          Sign In
-        </Box>
+
+        <SignedOut>          
+        </SignedOut>
+        <SignedIn>
+          <Box sx={{ paddingRight: '16px' }}>
+            <UserButton />
+          </Box>
+        </SignedIn>
       </Box>
 
-      {/* Hover Effect Box */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          background: `radial-gradient(circle at ${cursorPos.x}px ${cursorPos.y}px, rgba(255, 255, 255, 0.2), transparent 10%)`,
-          pointerEvents: 'none', // Prevents the hover box from interfering with other elements
-          transition: 'background 0.1s ease', // Smooth transition for the hover effect
-        }}
-      />
-
-      <Box marginTop={'100px'} color={'white'} textAlign={'center'}>
+      <Box color={'white'} textAlign={'center'} mb={4} mt={8}>
         <Typography
           variant="h2"
           sx={{
             marginBottom: '20px',
             fontWeight: 'bold',
             color: '#1E90FF',
+            fontSize: { xs: '32px', sm: '48px' },
           }}
         >
           Your No. 1 AI Assistant
@@ -107,6 +95,7 @@ export default function Home() {
           variant="h4"
           sx={{
             marginBottom: '20px',
+            fontSize: { xs: '20px', sm: '28px' },
           }}
         >
           <Typewriter
@@ -125,11 +114,59 @@ export default function Home() {
           sx={{
             marginTop: '50px',
             color: 'white',
+            fontSize: { xs: '16px', sm: '20px' },
           }}
         >
           Powered by cutting-edge AI to assist you with any query.
         </Typography>
       </Box>
+
+      <SignedOut>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
+            maxWidth: '300px',
+            padding: '20px',
+            borderRadius: '10px',
+            textAlign: 'center',
+          }}
+        >
+          <SignIn
+            routing="hash"
+            redirectUrl="/chatbot"
+            appearance={{
+              variables: {
+                colorPrimary: "#1E90FF",
+                colorText: "#ffffff",
+                colorBackground: "#1e1e2d",
+                colorInputText: "#ffffff",
+              },
+              elements: {
+                card: 'shadow-2xl bg-gray-800',
+                formButtonPrimary: 'bg-blue-600 hover:bg-blue-700',
+                socialButtons: 'bg-blue-600 hover:bg-blue-700 shadow-lg rounded-md',
+                formFieldInput: 'bg-gray-700',
+              },
+            }}
+          />
+        </Box>
+      </SignedOut>
+      <SignedIn>
+        <Button
+          variant="contained"
+          color="primary"
+          sx={{
+            mt: 4,
+            fontSize: { xs: '14px', sm: '16px' },
+          }}
+          onClick={() => router.push('/chatbot')}
+        >
+          Go to Chatbot
+        </Button>
+      </SignedIn>
     </Box>
   );
 }
