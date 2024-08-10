@@ -1,9 +1,27 @@
-'use client'
-import { Box, Typography, Button } from "@mui/material";
+'use client'; // Ensure this file is treated as a client-side component
+ // Home page
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation'; // Updated import for Next.js 13 and newer
+import { Box, Typography } from '@mui/material';
 import { Typewriter } from 'react-simple-typewriter';
-import Link from 'next/link';
 
 export default function Home() {
+  const router = useRouter();
+  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+
+  // Update cursor position when the mouse moves
+  const handleMouseMove = (e) => {
+    setCursorPos({ x: e.clientX, y: e.clientY });
+  };
+
+  useEffect(() => {
+    // Add event listener to track mouse movement
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      // Remove event listener on cleanup
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
 
   return (
     <Box
@@ -13,6 +31,12 @@ export default function Home() {
         backgroundPosition: 'center',
         height: '100vh',
         width: '100%',
+        overflow: 'hidden',
+        position: 'relative',
+        justifyContent: 'center',
+        alignItems: 'center',
+        textAlign: 'center',
+        overflow: 'hidden', // Ensure the hover effect doesn't go outside the container
       }}
     >
       <Box
@@ -30,8 +54,9 @@ export default function Home() {
             fontSize: '24px',
             fontWeight: 'bold',
             color: 'white',
-            borderBottom: '2px solid transparent'
+            borderBottom: '2px solid transparent',
           }}
+          onClick={() => router.push('/')} // Redirect to homepage on click
         >
           AI
         </Box>
@@ -46,18 +71,33 @@ export default function Home() {
               borderBottom: '2px solid white',
             },
           }}
+          onClick={() => router.push('/signin')} // Navigate to the sign-in page
         >
           Sign In
         </Box>
       </Box>
-      
+
+      {/* Hover Effect Box */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: `radial-gradient(circle at ${cursorPos.x}px ${cursorPos.y}px, rgba(255, 255, 255, 0.2), transparent 10%)`,
+          pointerEvents: 'none', // Prevents the hover box from interfering with other elements
+          transition: 'background 0.1s ease', // Smooth transition for the hover effect
+        }}
+      />
+
       <Box marginTop={'100px'} color={'white'} textAlign={'center'}>
         <Typography
           variant="h2"
           sx={{
             marginBottom: '20px',
             fontWeight: 'bold',
-            color: '#1E90FF', // Dodger blue color for the brand name
+            color: '#1E90FF',
           }}
         >
           Your No. 1 AI Assistant
@@ -89,14 +129,6 @@ export default function Home() {
         >
           Powered by cutting-edge AI to assist you with any query.
         </Typography>
-
-        <Box marginTop={'50px'}>
-          <Link href="/chatbot" passHref>
-            <Button variant="contained" color="primary" size="large">
-              Demo
-            </Button>
-          </Link>
-        </Box>
       </Box>
     </Box>
   );
