@@ -8,7 +8,8 @@ import Sidebar from './components/Sidebar';
 import ChatArea from './components/ChatArea';
 import { SignedIn, UserButton, useAuth, useUser } from '@clerk/nextjs';
 import { getAuth, signInWithCustomToken } from 'firebase/auth';
-import { db } from '../../firebase';
+import { deleteDoc, doc } from 'firebase/firestore';
+import { db } from '@/firebase';
 
 export default function Home() {
   const [messages, setMessages] = useState([
@@ -112,6 +113,24 @@ export default function Home() {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
+  const deleteConversation = async (conversationId) => {
+    if (!user || !user.id) {
+      console.error("User ID is undefined");
+      return;
+    }
+
+    try {
+      await deleteDoc(doc(db, "users", user.id, "conversations", conversationId));
+      setPreviousConversations((prev) => prev.filter((conv) => conv.id !== conversationId));
+      if (selectedConversation && selectedConversation.id === conversationId) {
+        setSelectedConversation(null);
+        setMessages([]);
+      }
+    } catch (error) {
+      console.error("Error deleting conversation:", error);
+    }
+  };
+
   return (
     <SignedIn>
     <Box
@@ -184,9 +203,8 @@ export default function Home() {
           setMessages={setMessages}
           setMessage={setMessage}
           setSelectedConversation={setSelectedConversation}
-          isSidebarCollapsed={isSidebarCollapsed}
-          toggleCollapse={toggleCollapse}
-          newConversationId={newConversationId} // Pass the new conversation ID
+          newConversationId={newConversationId}
+          deleteConversation={deleteConversation} // Pass the delete function here
         />
 
         {!isSidebarCollapsed && (

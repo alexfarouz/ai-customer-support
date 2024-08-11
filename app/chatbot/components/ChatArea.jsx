@@ -1,7 +1,8 @@
-import { Box, Stack, TextField, Button, CircularProgress } from '@mui/material';
+import { Box, Stack, TextField, IconButton, CircularProgress } from '@mui/material';
 import { useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { motion } from 'framer-motion';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 
 export default function ChatArea({
   messages,
@@ -103,9 +104,12 @@ export default function ChatArea({
         component="form"
         display="flex"
         alignItems="center"
-        p={1}
-        sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
-        className="rounded-lg"
+        p={0.75} // Reduce padding
+        sx={{ 
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          borderRadius: '8px',
+          height: '55px',  // Reduce height
+        }}
       >
         <TextField
           variant="outlined"
@@ -122,33 +126,46 @@ export default function ChatArea({
             '& .MuiOutlinedInput-root': {
               backgroundColor: 'black',
               borderRadius: '8px',
-              boxShadow: '0px 0px 8px rgba(255, 255, 255, 0.3)', // Add shadow for smooth effect
+              boxShadow: '0px 0px 8px rgba(255, 255, 255, 0.3)',
               transition: 'box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out',
               '&:hover fieldset': {
-                borderColor: 'rgba(255, 255, 255, 0.3)', // Lighter border on hover
+                borderColor: 'rgba(255, 255, 255, 0.3)',
               },
               '&.Mui-focused fieldset': {
-                borderColor: 'rgba(255, 255, 255, 0.3)', // Keep the border subtle on focus
+                borderColor: 'rgba(255, 255, 255, 0.3)',
               },
+              height: '100%',  // Ensure full height for the text field
             },
             '& .MuiInputLabel-root': {
               color: 'white',
             },
             '& .MuiInputBase-input': {
               color: 'white',
+              padding: '8px 14px',  // Adjust padding inside the text field
             },
           }}
           placeholder="Type your message here..."
         />
-        <Button
-          variant="contained"
-          color="primary"
+        <IconButton
           onClick={handleSendMessage}
-          sx={{ ml: 1 }}
+          sx={{
+            ml: 1,
+            backgroundColor: 'white',
+            color: 'black',
+            width: 40,
+            height: 40,  // Match the height of the text field container
+            borderRadius: '50%',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            },
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
           disabled={loading} // Disable send button while loading
         >
-          Send
-        </Button>
+          <ArrowUpwardIcon sx={{ fontSize: '24px' }} />
+        </IconButton>
       </Box>
     </Stack>
   );
