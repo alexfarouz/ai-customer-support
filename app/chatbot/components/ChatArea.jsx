@@ -1,5 +1,7 @@
-import { Box, Stack, TextField, Button } from '@mui/material';
+import { Box, Stack, TextField, Button, CircularProgress } from '@mui/material';
 import { useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import { motion } from 'framer-motion';
 
 export default function ChatArea({
   messages,
@@ -8,6 +10,7 @@ export default function ChatArea({
   message,
   setMessage,
   isSidebarCollapsed,
+  loading, // Receive loading state
 }) {
   const messageEndRef = useRef(null);
 
@@ -57,31 +60,42 @@ export default function ChatArea({
         }}
       >
         {messages.map((message, index) => (
-          <Box
+          <motion.div
             key={index}
-            display="flex"
-            justifyContent={message.role === 'assistant' ? 'flex-start' : 'flex-end'}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
             <Box
-              bgcolor={message.role === 'assistant' ? 'primary.main' : 'secondary.main'}
-              color="white"
-              borderRadius="12px"
-              p={1.5}
-              maxWidth="70%"
-              sx={{
-                fontFamily: 'Arial, sans-serif',
-                fontSize: '14px',
-                wordBreak: 'break-word',
-                whiteSpace: 'pre-wrap',
-                '&::first-letter': {
-                  textTransform: 'capitalize',
-                },
-              }}
+              display="flex"
+              justifyContent={message.role === 'assistant' ? 'flex-start' : 'flex-end'}
             >
-              {message.content}
+              <Box
+                bgcolor={message.role === 'assistant' ? 'rgba(3, 37, 65, 0.8)' : 'rgba(0, 0, 0, 0.6)'}
+                color="white"
+                borderRadius="12px"
+                p={1.5}
+                maxWidth="70%"
+                sx={{
+                  fontFamily: 'Arial, sans-serif',
+                  fontSize: '16px',  // Increase text size
+                  wordBreak: 'break-word',
+                  whiteSpace: 'pre-wrap',
+                  '&::first-letter': {
+                    textTransform: 'capitalize',
+                  },
+                }}
+              >
+                <ReactMarkdown>{message.content}</ReactMarkdown>
+              </Box>
             </Box>
-          </Box>
+          </motion.div>
         ))}
+        {loading && (
+          <Box display="flex" justifyContent="flex-start" alignItems="center" mt={2}>
+            <CircularProgress color="inherit" />
+          </Box>
+        )}
         <div ref={messageEndRef} />
       </Stack>
 
@@ -91,6 +105,7 @@ export default function ChatArea({
         alignItems="center"
         p={1}
         sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+        className="rounded-lg"
       >
         <TextField
           variant="outlined"
@@ -106,11 +121,14 @@ export default function ChatArea({
           sx={{
             '& .MuiOutlinedInput-root': {
               backgroundColor: 'black',
+              borderRadius: '8px',
+              boxShadow: '0px 0px 8px rgba(255, 255, 255, 0.3)', // Add shadow for smooth effect
+              transition: 'box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out',
               '&:hover fieldset': {
-                borderColor: 'white',
+                borderColor: 'rgba(255, 255, 255, 0.3)', // Lighter border on hover
               },
               '&.Mui-focused fieldset': {
-                borderColor: 'white',
+                borderColor: 'rgba(255, 255, 255, 0.3)', // Keep the border subtle on focus
               },
             },
             '& .MuiInputLabel-root': {
@@ -127,6 +145,7 @@ export default function ChatArea({
           color="primary"
           onClick={handleSendMessage}
           sx={{ ml: 1 }}
+          disabled={loading} // Disable send button while loading
         >
           Send
         </Button>

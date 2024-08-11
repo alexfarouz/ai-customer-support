@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Box, Button, IconButton } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import { motion } from 'framer-motion';
 
-export default function Sidebar({ previousConversations = [], selectConversation, setMessages, setMessage }) {
+export default function Sidebar({ previousConversations = [], selectConversation, setMessages, setMessage, setSelectedConversation, newConversationId }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const toggleCollapse = () => {
@@ -16,13 +17,13 @@ export default function Sidebar({ previousConversations = [], selectConversation
         flexDirection: 'column',
         width: isCollapsed ? '50px' : { xs: '100%', sm: '20vw' },
         transition: 'width 0.3s ease-in-out',
-        height: 'calc(100vh - 8vh)', // Full height minus the header
-        p: isCollapsed ? '0' : 2,
+        height: 'calc(100vh - 8vh)',
+        p: isCollapsed ? '0 5px' : 2,
         className: "bg-gray-800 bg-opacity-20 backdrop-blur-lg rounded-md text-white",
-        overflowY: 'auto', // Keep this to allow scrolling if content overflows
+        overflowY: 'auto',
         '@media (max-width: 600px)': {
           width: isCollapsed ? '50px' : '100%',
-          height: isCollapsed ? '50px' : 'calc(100vh - 8vh)', // Full height in mobile view
+          height: isCollapsed ? '50px' : 'calc(100vh - 8vh)',
         },
         '&::-webkit-scrollbar': {
           width: '5px',
@@ -42,9 +43,11 @@ export default function Sidebar({ previousConversations = [], selectConversation
       <Box
         sx={{
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: isCollapsed ? 'center' : 'space-between',
           alignItems: 'center',
           mb: 2,
+          borderRadius: '8px',
+          p: 1,
         }}
       >
         {!isCollapsed && (
@@ -57,13 +60,16 @@ export default function Sidebar({ previousConversations = [], selectConversation
               color: 'white',
               fontWeight: 'bold',
               width: '100%',
-              maxWidth: '200px',
+              maxWidth: '300px',
+              transition: 'box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out',
               '&:hover': {
-                border: '2px solid white',
-                backgroundColor: 'transparent',
+                boxShadow: '0px 10px 30px rgba(0, 0, 0, 0.9)',
+                backgroundColor: 'rgba(70, 70, 70, 0.9)',
+                borderRadius: '8px',
               },
             }}
             onClick={() => {
+              setSelectedConversation(null);
               setMessages([
                 {
                   role: 'assistant',
@@ -78,7 +84,16 @@ export default function Sidebar({ previousConversations = [], selectConversation
         )}
         <IconButton
           onClick={toggleCollapse}
-          sx={{ color: 'white', alignSelf: 'flex-end' }}
+          sx={{
+            color: 'white',
+            alignSelf: 'center',
+            borderRadius: '8px',
+            transition: 'box-shadow 0.3s ease-in-out, background-color 0.3s ease-in-out',
+            '&:hover': {
+              boxShadow: '0px 10px 30px rgba(0, 0, 0, 0.6)',
+              backgroundColor: 'rgba(70, 70, 70, 0.9)',
+            },
+          }}
         >
           <MenuIcon />
         </IconButton>
@@ -87,7 +102,7 @@ export default function Sidebar({ previousConversations = [], selectConversation
       {!isCollapsed && (
         <Box
           sx={{
-            height: 'calc(100% - 80px)', // Adjust height to fill the remaining space
+            height: 'calc(100% - 80px)',
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
@@ -108,9 +123,12 @@ export default function Sidebar({ previousConversations = [], selectConversation
         >
           <ul style={{ padding: 0, margin: 0 }}>
             {previousConversations.map((conv, index) => (
-              <li
+              <motion.li
                 key={index}
                 onClick={() => selectConversation(conv)}
+                initial={newConversationId === conv.id ? { opacity: 0, y: -10 } : { opacity: 0, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
                 style={{
                   cursor: 'pointer',
                   color: 'white',
@@ -120,9 +138,8 @@ export default function Sidebar({ previousConversations = [], selectConversation
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                 }}
               >
-                Conversation {index + 1} -{' '}
-                {new Date(conv.timestamp.seconds * 1000).toLocaleString()}
-              </li>
+                {(conv.title || `Conversation ${index + 1}`).replace(/['"]+/g, '')}
+              </motion.li>
             ))}
           </ul>
         </Box>

@@ -8,6 +8,7 @@ export async function sendMessage({
   setMessage,
   setSelectedConversation,
   userId,
+  isNewConversation,  // receive the new conversation status
 }) {
   const userMessage = { role: "user", content: message };
   const updatedMessages = [...messages, userMessage];
@@ -15,35 +16,45 @@ export async function sendMessage({
   setMessages(updatedMessages);
   setMessage('');
 
+  // Include an extra prompt for title generation if the conversation is new
+  const queryData = isNewConversation 
+    ? { query: message, generate_title: true } 
+    : { query: message };
+
   // Simulate sending the message to an AI API
   const response = await fetch('http://localhost:5000/api/rag', {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ query: message }),
+    body: JSON.stringify(queryData),
   });
-
+  
   if (!response.ok) {
     console.error("Error from AI API:", await response.json());
     return;
   }
-
+  
   const data = await response.json();
   const assistantMessage = { role: "assistant", content: data.answer };
-
   const finalMessages = [...updatedMessages, assistantMessage];
+  
   setMessages(finalMessages);
-
-  // Save or update the conversation in the user's collection
-  if (selectedConversation) {
-    await updateConversation(selectedConversation.id, finalMessages, userId); // Update the existing conversation
-  } else {
-    const docRef = await saveConversation(finalMessages, userId); // Save a new conversation with userId
+  
+  let newConversation = null;
+  if (isNewConversation) {
+    const title = data.title || "Untitled";  // Use the title returned from the AI API
+    const docRef = await saveConversation(finalMessages, userId, title);
     if (docRef) {
-      setSelectedConversation({ id: docRef.id, messages: finalMessages });
+      newConversation = { id: docRef.id, messages: finalMessages, title };
+      setSelectedConversation(newConversation);
     } else {
       console.error("Failed to save conversation: docRef is null or undefined");
     }
+  } else if (selectedConversation) {
+    await updateConversation(selectedConversation.id, finalMessages, userId);
   }
+
+  // Return the new conversation if created
+  return { newConversation };
 }

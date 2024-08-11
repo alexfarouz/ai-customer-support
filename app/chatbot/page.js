@@ -21,6 +21,8 @@ export default function Home() {
   const [previousConversations, setPreviousConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [newConversationId, setNewConversationId] = useState(null);
+  const [loading, setLoading] = useState(false); // New loading state
   const messageEndRef = useRef(null);
   const { isLoaded, getToken } = useAuth();
   const { user } = useUser();
@@ -58,7 +60,12 @@ export default function Home() {
       return;
     }
 
-    await sendMessage({
+    setLoading(true); // Start loading
+
+    const isNewConversation = !selectedConversation;
+    console.log("Is New Conversation:", isNewConversation);
+  
+    const response = await sendMessage({
       message,
       messages,
       selectedConversation,
@@ -66,9 +73,27 @@ export default function Home() {
       setMessage,
       setSelectedConversation,
       userId: user.id,
+      isNewConversation,
     });
+
+    setLoading(false); // End loading
+  
+    if (response.newConversation) {
+      setNewConversationId(response.newConversation.id); // Set the new conversation ID
+      setPreviousConversations((prev) => [response.newConversation, ...prev]);
+    }
+  
     scrollToBottom();
   };
+
+  useEffect(() => {
+    // Clear the new conversation ID after the sidebar renders
+    if (newConversationId) {
+      setTimeout(() => {
+        setNewConversationId(null);
+      }, 500);
+    }
+  }, [newConversationId]);
 
   const scrollToBottom = () => {
     messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -158,8 +183,10 @@ export default function Home() {
           selectConversation={selectConversation}
           setMessages={setMessages}
           setMessage={setMessage}
+          setSelectedConversation={setSelectedConversation}
           isSidebarCollapsed={isSidebarCollapsed}
           toggleCollapse={toggleCollapse}
+          newConversationId={newConversationId} // Pass the new conversation ID
         />
 
         {!isSidebarCollapsed && (
@@ -169,6 +196,7 @@ export default function Home() {
             setMessage={setMessage}
             handleSendMessage={handleSendMessage}
             messageEndRef={messageEndRef}
+            loading={loading} // Pass the loading state
           />
         )}
       </Box>
