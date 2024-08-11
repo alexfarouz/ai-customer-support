@@ -1,4 +1,4 @@
-import { updateConversation, saveConversation } from './conversation';
+import { saveConversation, updateConversation } from './conversation';
 
 export async function sendMessage({
   message,
@@ -6,7 +6,8 @@ export async function sendMessage({
   selectedConversation,
   setMessages,
   setMessage,
-  setSelectedConversation
+  setSelectedConversation,
+  userId,
 }) {
   const userMessage = { role: "user", content: message };
   const updatedMessages = [...messages, userMessage];
@@ -14,32 +15,35 @@ export async function sendMessage({
   setMessages(updatedMessages);
   setMessage('');
 
-  // Send the user's message to the Flask API
-  const response = await fetch('http://localhost:5000/api/rag', { // Adjust the URL to your Flask server location
+  // Simulate sending the message to an AI API
+  const response = await fetch('http://localhost:5000/api/rag', {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({ query: message }),
   });
 
   if (!response.ok) {
-    console.error("Error from Flask API:", await response.json());
+    console.error("Error from AI API:", await response.json());
     return;
   }
 
   const data = await response.json();
   const assistantMessage = { role: "assistant", content: data.answer };
 
-  // Update the assistant message
   const finalMessages = [...updatedMessages, assistantMessage];
   setMessages(finalMessages);
 
-  // Save or update the conversation
+  // Save or update the conversation in the user's collection
   if (selectedConversation) {
-    await updateConversation(selectedConversation.id, finalMessages); // Update the existing conversation
+    await updateConversation(selectedConversation.id, finalMessages, userId); // Update the existing conversation
   } else {
-    const docRef = await saveConversation(finalMessages); // Save a new conversation
-    setSelectedConversation({ id: docRef.id, messages: finalMessages });
+    const docRef = await saveConversation(finalMessages, userId); // Save a new conversation with userId
+    if (docRef) {
+      setSelectedConversation({ id: docRef.id, messages: finalMessages });
+    } else {
+      console.error("Failed to save conversation: docRef is null or undefined");
+    }
   }
 }

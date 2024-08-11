@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Box, Button, IconButton } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 
-export default function Sidebar({ previousConversations, selectConversation, setMessages, setMessage }) {
+export default function Sidebar({ previousConversations = [], selectConversation, setMessages, setMessage }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const toggleCollapse = () => {
@@ -16,13 +16,13 @@ export default function Sidebar({ previousConversations, selectConversation, set
         flexDirection: 'column',
         width: isCollapsed ? '50px' : { xs: '100%', sm: '20vw' },
         transition: 'width 0.3s ease-in-out',
-        height: 'calc(100vh - 8vh)',
+        height: 'calc(100vh - 8vh)', // Full height minus the header
         p: isCollapsed ? '0' : 2,
         className: "bg-gray-800 bg-opacity-20 backdrop-blur-lg rounded-md text-white",
-        overflowY: isCollapsed ? 'hidden' : 'auto',
+        overflowY: 'auto', // Keep this to allow scrolling if content overflows
         '@media (max-width: 600px)': {
           width: isCollapsed ? '50px' : '100%',
-          height: isCollapsed ? '50px' : '40vh',
+          height: isCollapsed ? '50px' : 'calc(100vh - 8vh)', // Full height in mobile view
         },
         '&::-webkit-scrollbar': {
           width: '5px',
@@ -87,7 +87,7 @@ export default function Sidebar({ previousConversations, selectConversation, set
       {!isCollapsed && (
         <Box
           sx={{
-            height: 'calc(100% - 80px)',
+            height: 'calc(100% - 80px)', // Adjust height to fill the remaining space
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',

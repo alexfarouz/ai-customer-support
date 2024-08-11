@@ -1,12 +1,14 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Box, Stack, TextField, Button } from '@mui/material';
+import { Box } from '@mui/material';
 import { fetchConversations } from '../services/conversation';
 import { sendMessage } from '../services/sendMessage';
-import { UserButton } from '@clerk/nextjs';
 import Sidebar from './components/Sidebar';
 import ChatArea from './components/ChatArea';
+import { SignedIn, UserButton, useAuth, useUser } from '@clerk/nextjs';
+import { getAuth, signInWithCustomToken } from 'firebase/auth';
+import { db } from '../../firebase';
 
 export default function Home() {
   const [messages, setMessages] = useState([
@@ -19,18 +21,43 @@ export default function Home() {
   const [previousConversations, setPreviousConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const router = useRouter();
   const messageEndRef = useRef(null);
+  const { isLoaded, getToken } = useAuth();
+  const { user } = useUser();
+  const router = useRouter();
+  const auth = getAuth();
 
   useEffect(() => {
-    const loadConversations = async () => {
-      const conversations = await fetchConversations();
-      setPreviousConversations(conversations);
+    const signInToFirebase = async () => {
+      try {
+        if (isLoaded && user) {
+          const token = await getToken({ template: "integration_firebase" }); 
+
+          if (token) {
+            await signInWithCustomToken(auth, token);
+            console.log('Signed in to Firebase');
+          } else {
+            console.error('No token received');
+            return;
+          }
+          const userId = user.id;
+          const conversations = await fetchConversations(userId);
+          setPreviousConversations(conversations);
+        }
+      } catch (error) {
+        console.error('Error signing in to Firebase:', error);
+      }
     };
-    loadConversations();
-  }, []);
+
+    signInToFirebase();
+  }, [isLoaded, user]);
 
   const handleSendMessage = async () => {
+    if (!user || !user.id) {
+      console.error("User ID is undefined");
+      return;
+    }
+
     await sendMessage({
       message,
       messages,
@@ -38,6 +65,7 @@ export default function Home() {
       setMessages,
       setMessage,
       setSelectedConversation,
+      userId: user.id,
     });
     scrollToBottom();
   };
@@ -60,6 +88,7 @@ export default function Home() {
   };
 
   return (
+    <SignedIn>
     <Box
       sx={{
         backgroundImage: `url('chatbot-page.jpg')`,
@@ -102,7 +131,7 @@ export default function Home() {
               fontSize: '20px',
             },
           }}
-          onClick={() => router.push('/')} // Navigate back to the landing page when clicked
+          onClick={() => router.push('/')}
         >
           AI Assistant
         </Box>
@@ -133,7 +162,6 @@ export default function Home() {
           toggleCollapse={toggleCollapse}
         />
 
-        {/* Only render ChatArea when sidebar is collapsed on mobile */}
         {!isSidebarCollapsed && (
           <ChatArea
             messages={messages}
@@ -145,5 +173,6 @@ export default function Home() {
         )}
       </Box>
     </Box>
+    </SignedIn>
   );
 }
