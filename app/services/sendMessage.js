@@ -14,42 +14,28 @@ export async function sendMessage({
   setMessages(updatedMessages);
   setMessage('');
 
-  // Send the user's message to the OpenAI API
-  const response = await fetch('/api/chat', {
+  // Send the user's message to the Flask API
+  const response = await fetch('http://localhost:5000/api/rag', { // Adjust the URL to your Flask server location
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify(updatedMessages),
+    body: JSON.stringify({ query: message }),
   });
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-
-  let assistantMessage = { role: "assistant", content: "" };
-  
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    const text = decoder.decode(value || new Int8Array(), { stream: true });
-    assistantMessage.content += text;
-
-    // Update the assistant message as it streams
-    setMessages((prevMessages) => {
-      const lastMessage = prevMessages[prevMessages.length - 1];
-      
-      if (lastMessage.role === "assistant") {
-        lastMessage.content = assistantMessage.content;
-        return [...prevMessages];
-      } else {
-        return [...prevMessages, assistantMessage];
-      }
-    });
+  if (!response.ok) {
+    console.error("Error from Flask API:", await response.json());
+    return;
   }
 
-  // After streaming is complete, save or update the conversation
+  const data = await response.json();
+  const assistantMessage = { role: "assistant", content: data.answer };
+
+  // Update the assistant message
   const finalMessages = [...updatedMessages, assistantMessage];
+  setMessages(finalMessages);
+
+  // Save or update the conversation
   if (selectedConversation) {
     await updateConversation(selectedConversation.id, finalMessages); // Update the existing conversation
   } else {
