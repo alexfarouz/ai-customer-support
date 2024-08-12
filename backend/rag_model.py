@@ -48,7 +48,7 @@ text_splitter = RecursiveCharacterTextSplitter(
 )
 
 # Load and split youtube transcript
-loader = YoutubeLoader.from_youtube_url("https://www.youtube.com/watch?v=e-gwvmhyU7A", add_video_info=True)
+loader = YoutubeLoader.from_youtube_url("https://www.youtube.com/watch?v=LB8KwiiUGy0", add_video_info=True)
 data = loader.load()
 texts = text_splitter.split_documents(data)
 
