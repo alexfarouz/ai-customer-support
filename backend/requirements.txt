@@ -10,3 +10,4 @@ gunicorn
 langchain_pinecone
 langchain_openai
 numpy
+youtube-transcript-api
