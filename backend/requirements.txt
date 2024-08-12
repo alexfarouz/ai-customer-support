@@ -1,15 +1,12 @@
 Flask
 Flask-CORS
-langchain_community.document_loaders
+langchain-community
 scikit-learn
-pinecone
+pinecone-client
 openai
 tiktoken
 python-dotenv
 gunicorn
 langchain_pinecone
 langchain_openai
-langchain.text_splitter
 numpy
-dotenv
-os
