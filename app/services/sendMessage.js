@@ -22,7 +22,7 @@ export async function sendMessage({
     : { query: message };
 
   // Simulate sending the message to an AI API
-  const response = await fetch('http://localhost:5000/api/rag', {
+  const response = await fetch('/api/rag', {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

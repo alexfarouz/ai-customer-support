@@ -3,6 +3,7 @@ from flask_cors import CORS
 from rag_model import perform_rag  # Import your RAG function
 from title_generator import generate_title_from_answer  # Import the title generator
 import logging
+import os
 
 # Set up basic configuration for logging
 logging.basicConfig(level=logging.DEBUG)
@@ -33,4 +34,5 @@ def rag_endpoint():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))  # Use the PORT environment variable or default to 5000
+    app.run(host='0.0.0.0', port=port)
