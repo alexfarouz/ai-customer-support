@@ -37,3 +37,4 @@ next-env.d.ts
 
 # Ignore this file
 clerk-firebase.json
+project.tar.gz

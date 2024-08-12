@@ -8,8 +8,9 @@ import Sidebar from './components/Sidebar';
 import ChatArea from './components/ChatArea';
 import { SignedIn, UserButton, useAuth, useUser } from '@clerk/nextjs';
 import { getAuth, signInWithCustomToken } from 'firebase/auth';
-import { deleteDoc, doc } from 'firebase/firestore';
+import { deleteDoc, doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase';
+import StarRating from './components/StarRating'; // Import StarRating component
 
 export default function Home() {
   const [messages, setMessages] = useState([
@@ -23,7 +24,9 @@ export default function Home() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [newConversationId, setNewConversationId] = useState(null);
-  const [loading, setLoading] = useState(false); // New loading state
+  const [loading, setLoading] = useState(false);
+  const [rating, setRating] = useState(0); // State for storing the rating
+
   const messageEndRef = useRef(null);
   const { isLoaded, getToken } = useAuth();
   const { user } = useUser();
@@ -43,9 +46,16 @@ export default function Home() {
             console.error('No token received');
             return;
           }
+
           const userId = user.id;
           const conversations = await fetchConversations(userId);
           setPreviousConversations(conversations);
+
+          // Fetch the stored rating from the database
+          const ratingDoc = await getDoc(doc(db, "users", userId, "rating", "userRating"));
+          if (ratingDoc.exists()) {
+            setRating(ratingDoc.data().value);
+          }
         }
       } catch (error) {
         console.error('Error signing in to Firebase:', error);
@@ -61,11 +71,10 @@ export default function Home() {
       return;
     }
 
-    setLoading(true); // Start loading
+    setLoading(true);
 
     const isNewConversation = !selectedConversation;
-    console.log("Is New Conversation:", isNewConversation);
-  
+
     const response = await sendMessage({
       message,
       messages,
@@ -77,18 +86,31 @@ export default function Home() {
       isNewConversation,
     });
 
-    setLoading(false); // End loading
-  
+    setLoading(false);
+
     if (response.newConversation) {
-      setNewConversationId(response.newConversation.id); // Set the new conversation ID
+      setNewConversationId(response.newConversation.id);
       setPreviousConversations((prev) => [response.newConversation, ...prev]);
     }
-  
+
     scrollToBottom();
   };
 
+  const handleRatingChange = async (newRating) => {
+    setRating(newRating);
+
+    if (user && user.id) {
+      try {
+        await setDoc(doc(db, "users", user.id, "rating", "userRating"), {
+          value: newRating,
+        });
+      } catch (error) {
+        console.error("Error updating rating:", error);
+      }
+    }
+  };
+
   useEffect(() => {
-    // Clear the new conversation ID after the sidebar renders
     if (newConversationId) {
       setTimeout(() => {
         setNewConversationId(null);
@@ -181,12 +203,17 @@ export default function Home() {
         </Box>
         <Box
           sx={{
+            display: 'flex',
+            alignItems: 'center',
             '@media (max-width: 600px)': {
               fontSize: '16px',
             },
           }}
         >
-          <UserButton />
+          <StarRating rating={rating} onRatingChange={handleRatingChange} />
+          <Box sx={{ ml: 2, mt: 1}}>
+            <UserButton />
+          </Box>
         </Box>
       </Box>
 
@@ -204,7 +231,7 @@ export default function Home() {
           setMessage={setMessage}
           setSelectedConversation={setSelectedConversation}
           newConversationId={newConversationId}
-          deleteConversation={deleteConversation} // Pass the delete function here
+          deleteConversation={deleteConversation}
         />
 
         {!isSidebarCollapsed && (
@@ -214,7 +241,7 @@ export default function Home() {
             setMessage={setMessage}
             handleSendMessage={handleSendMessage}
             messageEndRef={messageEndRef}
-            loading={loading} // Pass the loading state
+            loading={loading}
           />
         )}
       </Box>
@@ -222,3 +249,4 @@ export default function Home() {
     </SignedIn>
   );
 }
+//rsync -avz --exclude 'node_modules' -- exclude '.git' --exclude '.env' --exclude 'clerk-firebase.json' -e "ssh -i ~/.ssh/alexfarouz-dc-ai-chatbot,pem" ./ ubuntu@ec2-3-131-13-111.us-east-2.compute.amazonaws.com:~/app
