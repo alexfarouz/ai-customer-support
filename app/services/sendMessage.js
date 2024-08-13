@@ -22,7 +22,8 @@ export async function sendMessage({
     : { query: message };
 
   // Simulate sending the message to an AI API
-  const response = await fetch('/api/rag', {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const response = await fetch(`${apiUrl}/api/rag`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

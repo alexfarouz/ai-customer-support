@@ -8,7 +8,7 @@ import os
 # Set up basic configuration for logging
 logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
-CORS(app)  # Allow cross-origin requests for development
+CORS(app, resources={r"/*": {"origins": "https://ai-customer-support-three-phi.vercel.app/chatbot"}})  # Allow only requests from your Vercel domain
 
 @app.route('/api/rag', methods=['POST'])
 def rag_endpoint():
