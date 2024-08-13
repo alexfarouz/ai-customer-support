@@ -48,20 +48,20 @@ text_splitter = RecursiveCharacterTextSplitter(
 )
 
 # Load and split youtube transcript
-loader = YoutubeLoader.from_youtube_url("https://www.youtube.com/watch?v=LB8KwiiUGy0", add_video_info=True)
-data = loader.load()
-texts = text_splitter.split_documents(data)
+#loader = YoutubeLoader.from_youtube_url("https://www.youtube.com/watch?v=e-gwvmhyU7A", add_video_info=True)
+#data = loader.load()
+#texts = text_splitter.split_documents(data)
 
 index_name = "rag-ai-assistant"
 namespace = "youtube-videos"
-vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
+#vectorstore = PineconeVectorStore(index_name=index_name, embedding=embeddings)
 
-vectorstore_from_texts = PineconeVectorStore.from_texts(
-    [f"Source: {t.metadata['source']}, Title: {t.metadata['title']} \n\nContent: {t.page_content}" for t in texts],
-    embeddings,
-    index_name=index_name,
-    namespace=namespace
-)
+#vectorstore_from_texts = PineconeVectorStore.from_texts(
+#    [f"Source: {t.metadata['source']}, Title: {t.metadata['title']} \n\nContent: {t.page_content}" for t in texts],
+#    embeddings,
+#    index_name=index_name,
+#    namespace=namespace
+#)
 
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"),)
 pinecone_index = pc.Index(index_name)
